@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioCheck - Comprendre ses analyses, mieux s'informer sur sa santé</title>
+    <!-- Bootstrap 5 CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-mint: #20c997;
+            --primary-blue: #0284c7;
+            --bg-light: #f8fafc;
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-light);
+            color: #334155;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 1.5rem;
+        }
+        .navbar-brand span {
+            color: var(--primary-mint);
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #e0f2fe 0%, #e6fffa 100%);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .card-custom {
+            border: none;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .category-pill {
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-weight: 500;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #64748b;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .category-pill.active, .category-pill:hover {
+            background: var(--primary-mint);
+            color: white;
+            border-color: var(--primary-mint);
+        }
+
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <nav class="navbar navbar-expand-lg bg-white sticky-top shadow-sm py-3">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+                <i class="bi bi-crosshair2 text-success fs-3"></i>
+                Bio<span>Check</span>
+            </a>
+            <span class="navbar-text d-none d-md-block text-muted small ms-3">
+                Comprendre ses analyses, mieux s'informer sur sa santé
+            </span>
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">FR</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+
+        <!-- SECTION 1: Page d'Accueil & Recherche -->
+        {% if not selected_analysis %}
+        <div class="hero-section text-center text-md-start">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="fw-bold text-dark mb-2">Bio<span class="text-success">Check</span></h1>
+                    <p class="lead text-secondary mb-4">Comprendre ses analyses, mieux s'informer sur sa santé.</p>
+                    <p class="text-muted">BioCheck est un site éducatif qui vous aide à comprendre vos 63 analyses médicales avec des explications simples, fiables et accessibles.</p>
+                    
+                    <!-- Formulaire de recherche -->
+                    <form action="/" method="GET" class="mt-4">
+                        <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden bg-white">
+                            <span class="input-group-text bg-white border-0 ps-3"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" name="q" value="{{ query }}" class="form-control border-0 fs-6" placeholder="Rechercher une analyse (ex: glycémie, NFS, créatinine, TSH...)">
+                            <button class="btn btn-success px-4" type="submit">Rechercher</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4 text-center d-none d-md-block">
+                    <i class="bi bi-prescription2 text-success opacity-50" style="font-size: 8rem;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtres par catégorie -->
+        <div class="mb-4">
+            <h5 class="fw-bold mb-3">Toutes les analyses médicales (63)</h5>
+            <div class="d-flex flex-wrap gap-2">
+                {% for cat in categories %}
+                <a href="/?cat={{ cat.id }}" class="category-pill {% if selected_cat == cat.id %}active{% endif %}">
+                    <i class="bi {{ cat.icon }}"></i> {{ cat.nom }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Grille des analyses -->
+        {% if analyses %}
+        <div class="row g-3">
+            {% for a in analyses %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-custom h-100 p-3">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="icon-box text-white" style="background-color: {{ a.color }};">
+                            <i class="bi {{ a.icon }}"></i>
+                        </div>
+                        <div>
+                            <span class="badge bg-light text-dark border">{{ a.categorie_nom }}</span>
+                            <h6 class="fw-bold mb-0 mt-1">{{ a.nom }}</h6>
+                            <small class="text-muted">{{ a.abreviation }}</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small flex-grow-1">{{ a.definition }}</p>
+                    <a href="/?id={{ a.id }}" class="btn btn-sm btn-outline-primary rounded-pill w-100 mt-2">
+                        Voir la fiche détaillée <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-search text-muted fs-1"></i>
+            <p class="mt-2 text-muted">Aucune analyse ne correspond à votre recherche.</p>
+            <a href="/" class="btn btn-link">Réinitialiser les filtres</a>
+        </div>
+        {% endif %}
+
+        <!-- SECTION 2: Page Détaillée d'une Analyse -->
+        {% else %}
+        <div class="mb-3">
+            <a href="/" class="btn btn-outline-secondary btn-sm rounded-pill"><i class="bi bi-arrow-left"></i> Retour à la liste</a>
+        </div>
+
+        <div class="card card-custom p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                <div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle mb-2">{{ selected_analysis.categorie_nom }}</span>
+                    <h2 class="fw-bold text-dark">{{ selected_analysis.nom }}</h2>
+                    <p class="text-muted lead fs-6">{{ selected_analysis.abreviation }}</p>
+                </div>
+                <!-- Bouton Audio -->
+                <button id="btnAudio" data-text="{{ selected_analysis.definition }}" class="btn btn-outline-success rounded-pill d-flex align-items-center gap-2">
+                    <i class="bi bi-volume-up-fill fs-5"></i> Écouter l'explication
+                </button>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="row g-4">
+                <!-- Colonne Gauche -->
+                <div class="col-md-6">
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-primary"><i class="bi bi-info-circle me-1"></i> Définition & Explication</h6>
+                        <p class="bg-light p-3 rounded-3">{{ selected_analysis.definition }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="fw-bold"><i class="bi bi-question-circle me-1"></i> Pourquoi cette analyse est demandée ?</h6>
+                        <p class="text-muted">{{ selected_analysis.pourquoi }}</p>
+                    </div>
+                </div>
+
+                <!-- Colonne Droite -->
+                <div class="col-md-6">
+                    <div class="card bg-light border-0 p-3 mb-3">
+                        <h6 class="fw-bold"><i class="bi bi-egg-fried me-1"></i> Faut-il être à jeun ?</h6>
+                        <span class="badge {% if 'Oui' in selected_analysis.a_jeun %}bg-danger{% else %}bg-success{% endif %} w-auto mb-2" style="max-width: max-content;">
+                            {{ selected_analysis.a_jeun }}
+                        </span>
+                        <p class="small text-muted mb-0">{{ selected_analysis.jeun_duree }}</p>
+                    </div>
+
+                    <!-- Taux normaux (Femmes & Hommes) -->
+                    <div class="card bg-light border-0 p-3 mb-3">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-graph-up me-1"></i> Taux indicatifs de référence</h6>
+                        <div class="mb-2">
+                            <span class="badge bg-danger mb-1"><i class="bi bi-gender-female"></i> Femmes Adultes</span>
+                            <p class="small mb-0 text-dark fw-medium">{{ selected_analysis.norme_femme }}</p>
+                        </div>
+                        <hr class="my-2">
+                        <div>
+                            <span class="badge bg-primary mb-1"><i class="bi bi-gender-male"></i> Hommes Adultes</span>
+                            <p class="small mb-0 text-dark fw-medium">{{ selected_analysis.norme_homme }}</p>
+                        </div>
+                    </div>
+
+                    <div class="card bg-light border-0 p-3 mb-3">
+                        <h6 class="fw-bold"><i class="bi bi-vial me-1"></i> Type de prélèvement</h6>
+                        <p class="text-muted mb-0">{{ selected_analysis.prelevement }}</p>
+                    </div>
+
+                    <div class="card bg-light border-0 p-3">
+                        <h6 class="fw-bold"><i class="bi bi-body-text me-1"></i> Organe / Système concerné</h6>
+                        <p class="text-muted mb-0">{{ selected_analysis.organe }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Synthèse Vocale JavaScript -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const btnAudio = document.getElementById("btnAudio");
+            
+            if (btnAudio) {
+                btnAudio.addEventListener("click", function() {
+                    const textToRead = this.getAttribute("data-text");
+
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+
+                        if (textToRead && textToRead.trim() !== "") {
+                            const utterance = new SpeechSynthesisUtterance(textToRead);
+                            utterance.lang = 'fr-FR';
+                            utterance.rate = 0.9;
+                            window.speechSynthesis.speak(utterance);
+                        }
+                    } else {
+                        alert("La lecture vocale n'est pas supportée par votre navigateur.");
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
